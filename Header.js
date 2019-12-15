@@ -6,7 +6,6 @@ class Header extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Text> Header </Text>
         <TextInput style={styles.texto} 
             onChangeText={this.props.cambiarTexto}
             placeholder="Aqui escribe un texto..."
@@ -25,7 +24,8 @@ const styles = StyleSheet.create({
       justifyContent: "center",
     },
     texto:{
-        paddingHorizontal:18
+        paddingHorizontal:18,
+        fontSize: 24,
     }
 });
 export default Header;

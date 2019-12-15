@@ -1,13 +1,20 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, AsyncStorage, Button } from 'react-native';
 import Header from './Header';
 import Body from './Body';
 
 export default class App extends React.Component {
   constructor(){
     super();
-    this.state = {tareas: [],
-    texto: ""};
+    this.state = {
+      tareas: [],
+      texto: '',
+      cargando: true
+    };
+  }
+
+  componentDidMount(){
+    this.recuperarEnTelefono();
   }
 
   establecerTexto = (value) => {
@@ -16,11 +23,53 @@ export default class App extends React.Component {
   }
 
   agregarTarea = () => {
+    const nuevasTareas = [...this.state.tareas, {texto:this.state.texto, key:Date.now()}]; 
+    this.guardarEnTelefono(nuevasTareas);
     this.setState({
-      tareas: [...this.state.tareas, {texto:this.state.texto, key:Date.now()}],
+      tareas: nuevasTareas,
       texto: ''
+    });
+  }
+
+  eliminarTarea = (id) => {
+    const nuevasTareas = this.state.tareas.filter(tarea => tarea.key !== id);
+    this.guardarEnTelefono(nuevasTareas);
+    this.setState({
+      tareas: nuevasTareas
+    });
+  }
+
+  guardarEnTelefono = (tareas) => {
+    AsyncStorage.setItem('@AppCurso:tareas',JSON.stringify(tareas))
+    .then((valor) => {
+      console.log(valor);
     })
-    console.log(this.state.tareas.length);
+    .catch((error) => {
+      console.log(error);
+    })
+  }
+
+  recuperarEnTelefono = () => {
+    AsyncStorage.getItem('@AppCurso:tareas')
+    .then((valor) => {
+      console.log(valor);
+      console.log(JSON.parse(valor));
+      if (valor !== null){
+        const nuevasTareas = JSON.parse(valor);
+        this.setState({
+          cargando: false
+        });
+        this.setState({
+          tareas: nuevasTareas
+        });
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      this.setState({
+        cargando: false
+      })
+    })
   }
 
   render() {
@@ -30,8 +79,19 @@ export default class App extends React.Component {
         texto={this.state.texto}
         cambiarTexto={this.establecerTexto} 
         agregar={this.agregarTarea}/>
-      <Text>{this.state.texto}</Text>
-      <Body tareas={this.state.tareas}/>
+      <Button 
+        title="Guardar"
+        onPress={() => { this.guardarEnTelefono(); }}
+      />
+      <Button 
+        title="Recuperar"
+        onPress={() => { this.recuperarEnTelefono(); }}
+      />
+      <Body 
+        tareas={this.state.tareas} 
+        eliminar={this.eliminarTarea} 
+        cargando={this.state.cargando}
+      />
     </View>
     );
   }
